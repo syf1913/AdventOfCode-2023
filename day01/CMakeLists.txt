@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(AoC_Day01_Part01)
+project(AoC_Day01)
 
 # 设置C++标准为C++11
 set(CMAKE_CXX_STANDARD 11)
