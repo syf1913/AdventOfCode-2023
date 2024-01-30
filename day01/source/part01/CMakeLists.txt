@@ -1,0 +1,1 @@
+add_executable(AoCDay01Part01 main.cpp)
