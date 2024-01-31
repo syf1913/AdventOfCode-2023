@@ -1,89 +1,26 @@
+#include <chrono>
 #include <fstream>
 #include <iostream>
-#include <list>
+#include <numeric>
+#include <sstream>
 #include <string>
 #include <vector>
 
 /**------------------------------------------------------------------------
  * *                                INFO
- *   虽然此程序确实能够解决 Advent of Code 2023: day02 part1 的题目，
- *   但是程序过于面向过程，很多地方的代码写得过于冗余，且鲁棒性不足。
- *   希望使用更加面向对象的方法，给出该题目的解决方案。
+ *   1. 使用 istringstream::operator>>() 来读取文件中的特定的数字和字符串；
+ *   2. 使用Lambda表达式来快速 step 1 的操作，当然也可以使用普通函数来实现；
+ *   3. Lambda表达式能够作为std::function 传递给std::accumulate()来实现累加
+ *      操作，从而省略 while 循环，但是采用此方法，程序的运行时间略高于普通
+ *      while循环，因为前者同样需要一个while循环，来存储inputfile的所有行内容，
+ *      至一个string容器中；
  *------------------------------------------------------------------------**/
-
-int getTotalNumbersOfColorCube(std::string &line)
-{
-    std::vector<std::string> colors_vector    = {"red", "green", "blue"};
-    int                      temp_nums_colors = 0;
-    int                      game_id          = 0;
-    for (auto char_iter = line.begin(); char_iter != line.end(); ++char_iter)
-    {
-        // 记录 game id
-        if (*char_iter == ':')
-        {
-            if (std::isdigit(*(char_iter - 1)) &&
-                std::isdigit(*(char_iter - 2)))
-            {
-                // 两位数 game id
-                game_id = std::stoi(std::string(1, *(char_iter - 2))) * 10 +
-                          std::stoi(std::string(1, *(char_iter - 1)));
-            }
-            else
-            {
-                // 一位数 game id
-                game_id = std::stoi(std::string(1, *(char_iter - 1)));
-            }
-        }
-
-        // 对比颜色字符串，并检查对应的颜色个数是否满足要求
-        for (auto color_iter = colors_vector.begin();
-             color_iter != colors_vector.end();
-             ++color_iter)
-        {
-            // c++11标准中，substr() 无需显示进行越界检查
-            if (line.substr(char_iter - line.begin(), color_iter->size()) ==
-                *color_iter)
-            {
-                // 判断数字是一位数还是两位数
-                if (std::isdigit(*(char_iter - 2)) &&
-                    std::isdigit(*(char_iter - 3)))
-                {
-                    // 颜色cube个数为两位数
-                    temp_nums_colors =
-                        std::stoi(std::string(1, *(char_iter - 3))) * 10 +
-                        std::stoi(std::string(1, *(char_iter - 2)));
-                }
-                else
-                {
-                    // 颜色cube个数为一位数
-                    temp_nums_colors =
-                        std::stoi(std::string(1, *(char_iter - 2)));
-                }
-
-                if (*color_iter == "red" && (temp_nums_colors > 12))
-                {
-                    // red cube个数大于 12，不满足条件，终止函数，返回0
-                    return 0;
-                }
-                else if (*color_iter == "green" && (temp_nums_colors > 13))
-                {
-                    // green cube个数大于 13，不满足条件，终止函数，返回0
-                    return 0;
-                }
-                else if (*color_iter == "blue" && (temp_nums_colors > 14))
-                {
-                    // blue cube个数大于 14，不满足条件，终止函数，返回0
-                    return 0;
-                }
-            } // endif same with one of colors
-        }     // end loop colors_vector
-    }         // end loop line
-
-    return game_id;
-}
 
 int main(int argc, char *argv[])
 {
+    // 获取程序开始执行的时间点
+    auto start_time = std::chrono::high_resolution_clock::now();
+
     std::string input_filename;
     if (argc != 2)
     {
@@ -102,18 +39,106 @@ int main(int argc, char *argv[])
     }
 
     std::cout << "Get contents of the input file ...";
+    uint32_t result(0);
 
-    std::string line;
-    int         result = 0;
-    while (std::getline(input_file, line))
+    // method 1:
     {
-        // std::cout << line << std::endl;
-        result += getTotalNumbersOfColorCube(line);
-        // break;
+        // 使用while循环实现累加操作
+        // 定义一个读取特定数字和字符串的Lambda表达式
+        auto getGameIdAndSpecialString = [](const std::string &line) {
+            uint32_t    gameId;
+            uint32_t    tmp_int;
+            std::string tmp_str;
+
+            std::istringstream i_str_steam(line);
+
+            i_str_steam >> tmp_str;
+            i_str_steam >> gameId;
+            i_str_steam.ignore(1);
+
+            while (i_str_steam >> tmp_int)
+            {
+                i_str_steam >> tmp_str;
+                if ((tmp_str[0] == 'r' && tmp_int > 12) ||
+                    (tmp_str[0] == 'g' && tmp_int > 13) ||
+                    (tmp_str[0] == 'b' && tmp_int > 14))
+                {
+                    return uint32_t(0);
+                }
+            }
+
+            return gameId;
+        };
+
+        std::string line;
+        while (std::getline(input_file, line))
+        {
+            result += getGameIdAndSpecialString(line);
+            // break;
+        }
     }
 
-    std::cout << "   Finished ! " << std::endl;
+    // method 2:
+    {
+        // 使用std::accumulate()函数实现累加操作
+        // 定义一个读取特定数字和字符串的Lambda表达式
+        // auto getGameIdAndSpecialString = [](auto              &sum,
+        //                                     const std::string &line) {
+        //     uint32_t    gameId;
+        //     uint32_t    tmp_int;
+        //     std::string tmp_str;
+
+        //     std::istringstream i_str_steam(line);
+
+        //     i_str_steam >> tmp_str;
+        //     i_str_steam >> gameId;
+        //     i_str_steam.ignore(1);
+
+        //     while (i_str_steam >> tmp_int)
+        //     {
+        //         i_str_steam >> tmp_str;
+        //         if ((tmp_str[0] == 'r' && tmp_int > 12) ||
+        //             (tmp_str[0] == 'g' && tmp_int > 13) ||
+        //             (tmp_str[0] == 'b' && tmp_int > 14))
+        //         {
+        //             // return uint32_t{0};
+        //             return sum;
+        //         }
+        //     }
+
+        //     // return gameId;
+        //     return sum + gameId;
+        // };
+
+        // std::string              line;
+        // std::vector<std::string> input_file_lines;
+        // while (std::getline(input_file, line))
+        // {
+        //     input_file_lines.push_back(line);
+        //     // break;
+        // }
+
+        // 使用cbegin()和cend()，确保input_file_lines不会被修改
+        // result = std::accumulate(input_file_lines.cbegin(),
+        //                          input_file_lines.cend(),
+        //                          uint32_t(0),
+        //                          getGameIdAndSpecialString);
+    }
+
+    input_file.close();
+
+    // 获取程序结束执行的时间点
+    auto end_time = std::chrono::high_resolution_clock::now();
+    // 计算时间差
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+        end_time - start_time);
+
+    std::cout << "   finished ! " << std::endl;
     std::cout << "Result: " << result << std::endl; // right answer: 2285
+
+    // 输出程序运行时间
+    std::cout << "Time taken by this code: " << duration.count()
+              << " microseconds" << std::endl;
 
     return 0;
 }
