@@ -69,6 +69,8 @@ int main(int argc, char *argv[])
         digits_in_line.clear();
     }
 
+    input_file.close();
+
     std::cout << "\nFinished ... " << std::endl;
     std::cout << "Result: " << result << std::endl; // right answer: 54573
 
