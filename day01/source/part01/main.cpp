@@ -74,5 +74,5 @@ int main(int argc, char *argv[])
     std::cout << "\nFinished ... " << std::endl;
     std::cout << "Result: " << result << std::endl; // right answer: 54573
 
-    return 0;
+    return EXIT_SUCCESS;
 }
