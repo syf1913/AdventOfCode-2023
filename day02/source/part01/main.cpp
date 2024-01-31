@@ -140,5 +140,5 @@ int main(int argc, char *argv[])
     std::cout << "Time taken by this code: " << duration.count()
               << " microseconds" << std::endl;
 
-    return 0;
+    return EXIT_SUCCESS;
 }
