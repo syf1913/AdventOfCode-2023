@@ -74,7 +74,11 @@ void mapProjectedByNumbersAndSymbols(
                         else
                         {
                             // 否则，在number_map对应坐标位置处映射首个数字(字符串)
-                            number_map[position] = {number};
+                            // 使用map的默认构造函数
+                            // map[{std::array<int, 2> position}] =
+                            // std::vector<uint32_t> or {number} =>
+                            // vector<uint32_t>
+                            number_map[{position}] = {number};
                         }
                     }
                     // 数字字符串结束，重置数字字符串及其位置坐标容器，
