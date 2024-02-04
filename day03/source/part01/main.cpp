@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
         end_time - start_time);
 
     std::cout << "   finished ! " << std::endl;
-    std::cout << "Result: " << result << std::endl;
+    std::cout << "Result: " << result << std::endl; // right answer: 546312
 
     // 输出程序运行时间
     std::cout << "Time taken by this code: " << duration.count()
