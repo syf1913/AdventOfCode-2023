@@ -94,6 +94,8 @@ main(int argc, char* argv[])
                     {
                         /*
                          * seed 与 source 之间的差值 映射到 destination + 该差值
+                         * 并且随着最外层循环，map : maps
+                         * 在此处直接修改 seed 值，即可实现 seed-to-soil，soil-to-fertilizer ...
                          */
 
                         // seed += array_in_map[0] - array_in_map[1];
