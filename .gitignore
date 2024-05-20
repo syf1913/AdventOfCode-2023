@@ -1,6 +1,7 @@
 #user
 build/
 temp/
+.clang-format
 
 # Prerequisites
 *.d
